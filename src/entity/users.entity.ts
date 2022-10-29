@@ -1,4 +1,5 @@
 import { AbstractEntity } from 'src/common/abstract/abstract.entity';
+import { AuthType } from 'src/common/enum';
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
@@ -23,4 +24,10 @@ export class User extends AbstractEntity {
 
   @Column({ nullable: false, type: 'varchar' })
   password: string;
+
+  @Column({ nullable: true, type: 'date' })
+  lastLoginOnDate: Date;
+
+  @Column({ nullable: false, type: 'enum', enum: AuthType })
+  roleType: AuthType;
 }

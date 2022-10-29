@@ -2,11 +2,11 @@ import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOpti
 
 const config: MysqlConnectionOptions = {
   type: 'mysql',
-  host: 'localhost',
-  database: 'nestjs',
-  port: 3306,
-  username: 'root',
-  password: '123456',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'nestjs',
+  port: Number(process.env.DB_PORT) || 3306,
+  username: process.env.DB_USERNAME || 'root',
+  password: process.env.DB_PASSWORD || '123456',
   synchronize: true,
   entities: ['dist/src/**/**.entity.js'],
   migrations: ['dist/src/database/migration/**/*.js'],
