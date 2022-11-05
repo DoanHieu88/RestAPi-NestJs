@@ -5,10 +5,13 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { CustomerRepository } from 'src/repository/customer.repository';
+import { JwtStrategy } from './jwt.strategy';
+import { AuthGuard } from './auth.guard';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserRepository]),
+    TypeOrmModule.forFeature([UserRepository, CustomerRepository]),
     forwardRef(() => AuthModule),
     PassportModule,
     JwtModule.register({
@@ -17,7 +20,14 @@ import { JwtModule } from '@nestjs/jwt';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    {
+      provide: 'APP_GUARD',
+      useClass: AuthGuard,
+    },
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

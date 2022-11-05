@@ -9,21 +9,23 @@ import {
   EMAIL_IS_EXIST,
   EMAIL_NOT_EXIST,
   PASSWORD_IS_INCORRECT,
+  TOKEN_INVALID,
   USER_NOT_FOUND,
 } from 'src/common/constant/exception-constant';
 import { AuthType } from 'src/common/enum';
 import { hashPassword } from 'src/common/until/funtion-until';
-import { AuthRepository } from 'src/repository/auth.repository';
 import { UserRepository } from 'src/repository/users.repository';
 import { Login, SignUpDTO } from './auth.dto';
 import * as bcryptjs from 'bcryptjs';
 import { User } from 'src/entity/users.entity';
 import { JwtService } from '@nestjs/jwt';
+import { CustomerRepository } from 'src/repository/customer.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userRepository: UserRepository,
+    private customerRepository: CustomerRepository,
     private readonly jwtService: JwtService,
   ) {}
   public async signUpAdmin(payload: SignUpDTO) {
@@ -44,34 +46,66 @@ export class AuthService {
     return await this.userRepository.save({ ...audit, ...payload });
   }
 
-  public async getAll() {
-    return await this.userRepository.find();
+  public async loginAdmin(payload: Login) {
+    const user = await this.userRepository.findOne({
+      where: { email: payload.email },
+    });
+    if (!user) throw new UnauthorizedException(EMAIL_NOT_EXIST);
+
+    const isMatch = await bcryptjs.compare(payload.password, user.password);
+    if (!isMatch) throw new UnauthorizedException(PASSWORD_IS_INCORRECT);
+
+    const audit = {
+      lastLoginOnDate: new Date(),
+    };
+
+    const userInfor = await this.userRepository.findOne({
+      where: { id: user.id },
+    });
+    if (!userInfor) throw new BadRequestException(USER_NOT_FOUND);
+    await this.userRepository.save({ ...userInfor, ...audit });
+
+    return this.encode(userInfor);
   }
 
-  public async loginAdmin(payload: Login) {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { email: payload.email },
-      });
-      if (!user) throw new UnauthorizedException(EMAIL_NOT_EXIST);
+  public async registerCustomer(payload: SignUpDTO) {
+    const customer = await this.customerRepository.findOne({
+      where: { email: payload.email },
+    });
+    if (customer) throw new BadRequestException(EMAIL_IS_EXIST);
 
-      const isMatch = await bcryptjs.compare(payload.password, user.password);
-      if (!isMatch) throw new UnauthorizedException(PASSWORD_IS_INCORRECT);
-
-      const audit = {
-        lastLoginOnDate: new Date(),
-      };
-
-      const userInfor = await this.userRepository.findOne({
-        where: { id: user.id },
-      });
-      if (!userInfor) throw new BadRequestException(USER_NOT_FOUND);
-      await this.userRepository.save({ ...userInfor, ...audit });
-
-      return this.encode(userInfor);
-    } catch (error) {
-      console.log(error);
+    if (payload.password !== payload.comfrimPassword) {
+      throw new BadRequestException(CONFIRM_PASSWORD_NOT_MATCH);
     }
+    payload.password = await hashPassword(payload.password);
+    const audit = {
+      lastModifiedOnDate: new Date(),
+      roleType: AuthType.Customer,
+    };
+
+    return await this.customerRepository.save({ ...payload, ...audit });
+  }
+
+  public async signInCustomer(payload: Login) {
+    const customer = await this.customerRepository.findOne({
+      where: { email: payload.email },
+    });
+    if (!customer) throw new UnauthorizedException(EMAIL_NOT_EXIST);
+
+    const isMatch = await bcryptjs.compare(payload.password, customer.password);
+    if (!isMatch) throw new UnauthorizedException(PASSWORD_IS_INCORRECT);
+
+    const audit = {
+      lastLoginOnDate: new Date(),
+    };
+
+    const userInfor = await this.customerRepository.findOne({
+      where: { id: customer.id },
+    });
+    if (!userInfor) throw new BadRequestException(USER_NOT_FOUND);
+    await this.customerRepository.save({ ...userInfor, ...audit });
+
+    return this.encode(userInfor);
   }
 
   private encode(user: User) {
@@ -95,5 +129,19 @@ export class AuthService {
     return this.jwtService.sign(payload, {
       expiresIn: process.env.JWT_EXPIRES_IN || 86400000,
     });
+  }
+
+  public decode(token: string) {
+    let tokenReplace = null;
+    let decodeToken = null;
+    try {
+      tokenReplace = token.replace('Bearer ', '').trim();
+      decodeToken = this.jwtService.decode(tokenReplace, {
+        json: true,
+      });
+    } catch (error) {
+      throw new UnauthorizedException(TOKEN_INVALID);
+    }
+    return decodeToken;
   }
 }
