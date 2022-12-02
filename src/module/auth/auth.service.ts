@@ -114,7 +114,7 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      roleType: user.roleType,
+      roleType: user?.roleType,
       token,
     };
   }
@@ -123,7 +123,7 @@ export class AuthService {
     const payload = {
       email: user.email,
       id: user.id,
-      role: user.roleType,
+      role: user?.roleType,
     };
 
     return this.jwtService.sign(payload, {

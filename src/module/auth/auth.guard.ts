@@ -21,6 +21,6 @@ export class AuthGuard implements CanActivate {
       .authorization as string;
     const user: DecodeJwtDto = this.authService.decode(token);
 
-    if (requiredAuth?.includes(user.role as AuthType)) return true;
+    if (requiredAuth?.includes(user?.role as AuthType)) return true;
   }
 }
