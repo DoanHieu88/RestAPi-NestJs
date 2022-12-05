@@ -35,7 +35,7 @@ export class AuthService {
     if (userExit) {
       throw new BadRequestException(EMAIL_IS_EXIST);
     }
-    if (payload.password !== payload.comfrimPassword) {
+    if (payload.password !== payload.comfirmPassword) {
       throw new BadRequestException(CONFIRM_PASSWORD_NOT_MATCH);
     }
     payload.password = await hashPassword(payload.password);
@@ -43,7 +43,8 @@ export class AuthService {
       lastModifiedOnDate: new Date(),
       roleType: AuthType.Admin,
     };
-    return await this.userRepository.save({ ...audit, ...payload });
+     await this.userRepository.save({ ...audit, ...payload });
+     return {message: "success"}
   }
 
   public async loginAdmin(payload: Login) {
@@ -74,7 +75,7 @@ export class AuthService {
     });
     if (customer) throw new BadRequestException(EMAIL_IS_EXIST);
 
-    if (payload.password !== payload.comfrimPassword) {
+    if (payload.password !== payload.comfirmPassword) {
       throw new BadRequestException(CONFIRM_PASSWORD_NOT_MATCH);
     }
     payload.password = await hashPassword(payload.password);

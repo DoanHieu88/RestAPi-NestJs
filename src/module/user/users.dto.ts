@@ -34,3 +34,8 @@ export class changeInforUserDto{
     @IsOptional()
     company: string;
 }
+
+export class GetbyEmailDto {
+    @ApiProperty({description: 'email', required :true})
+    email:string
+}

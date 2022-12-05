@@ -23,8 +23,8 @@ export class SignUpDTO {
   @ApiProperty({ required: true, description: 'password' })
   password: string;
 
-  @ApiProperty({ required: true, description: 'comfrimPassword' })
-  comfrimPassword: string;
+  @ApiProperty({ required: true, description: 'comfirmPassword' })
+  comfirmPassword: string;
 }
 
 export class Login {

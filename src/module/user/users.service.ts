@@ -48,4 +48,11 @@ export class UsersService {
             
         }
     }
+
+    public async getUserByEmail(email:string){
+        const user = await this.userRepository.findOne({where:{email}})
+        if(!user) return false 
+       return true
+     
+    }
 }
