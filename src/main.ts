@@ -15,6 +15,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.enableCors();
   const config = new DocumentBuilder()
     .setTitle('Netflix')
     .setDescription('learn nestjs')
