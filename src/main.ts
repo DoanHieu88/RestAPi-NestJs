@@ -16,7 +16,7 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new HttpExceptionFilter());
   const config = new DocumentBuilder()
-    .setTitle('User-Manager')
+    .setTitle('Netflix')
     .setDescription('learn nestjs')
     .setVersion('1.0.0')
     .addBearerAuth({ in: 'header', type: 'http' })
