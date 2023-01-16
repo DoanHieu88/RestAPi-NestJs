@@ -18,6 +18,7 @@ import { ProductsModule } from './module/products/products.module';
     ProductsModule,
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ".env",
     }),
   ],
   providers: [
